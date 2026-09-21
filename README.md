@@ -2,7 +2,7 @@
 
 # WhatsApp AI Assistant
 
-**An interactive WhatsApp bot built on the Meta Cloud API, using OpenAI to generate conversational responses — the conversational front-end for [Velo.Stor](https://github.com/El-Tousy/VELO-STOR-Online-Store).**
+**An interactive WhatsApp bot built on the Meta Cloud API, using OpenAI to generate conversational responses — the conversational front-end for [Velo.Stor](https://velo-stor.netlify.app/).**
 
 [**🔗 Companion project — Velo.Stor**](https://github.com/El-Tousy/VELO-STOR-Online-Store) · [**📄 Deutsch**](README.de.md)
 
