@@ -2,15 +2,14 @@
 
 # WhatsApp-KI-Assistent
 
-**Ein interaktiver WhatsApp-Bot auf Basis der Meta Cloud API, der mit OpenAI Konversationsantworten generiert — das konversationelle Frontend für [Velo.Stor](https://github.com/El-Tousy/VELO-STOR-Online-Store).**
+**Ein interaktiver WhatsApp-Bot auf Basis der Meta Cloud API, der OpenAI nutzt, um Antworten im Gespräch zu erzeugen — das konversationelle Frontend für [Velo.Stor](https://velo-stor.netlify.app/).**
 
-[**🔗 Verwandtes Projekt — Velo.Stor**](https://github.com/El-Tousy/VELO-STOR-Online-Store) · [**📄 English**](README.md)
+[**🔗 Begleitprojekt — Velo.Stor**](https://github.com/El-Tousy/velo.Store) · [**🇬🇧 English**](README.md)
 
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-000000?style=flat&logo=flask&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI_API-412991?style=flat&logo=openai&logoColor=white)
 ![Meta](https://img.shields.io/badge/Meta_Cloud_API-0866FF?style=flat&logo=meta&logoColor=white)
-![CI](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=flat&logo=githubactions&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
 </div>
@@ -28,23 +27,20 @@
 - [Umgebungsvariablen](#umgebungsvariablen)
 - [API-Endpunkte](#api-endpunkte)
 - [Tests](#tests)
-- [CI/CD](#cicd)
-- [Deployment](#deployment)
+- [Bereitstellung](#bereitstellung)
 - [Technische Herausforderungen und Erkenntnisse](#technische-herausforderungen-und-erkenntnisse)
 - [Roadmap](#roadmap)
 - [Verwandtes Projekt](#verwandtes-projekt)
-- [Autorin](#autorin)
+- [Autor](#autor)
 - [Lizenz](#lizenz)
 
 ---
 
 ## Überblick
 
-Dieses Projekt ist ein Webhook-Server, der WhatsApp in einen konversationellen Shop verwandelt. Er empfängt Kundennachrichten über die **Meta WhatsApp Cloud API**, interpretiert sie mit der **OpenAI API** und antwortet automatisch — unter Verwendung desselben Produktkatalogs wie die [Velo.Stor](https://github.com/El-Tousy/VELO-STOR-Online-Store)-Website.
+Dieses Projekt ist ein Webhook-Server, der WhatsApp in ein konversationelles Schaufenster verwandelt. Er empfängt Kundennachrichten über die **Meta WhatsApp Cloud API**, interpretiert sie mit der **OpenAI-API** und antwortet automatisch — auf Basis desselben Produktkatalogs wie die Website [Velo.Stor](https://github.com/El-Tousy/velo.Store).
 
-Ziel ist es, dass Kund:innen direkt in einem WhatsApp-Chat nach Fahrrädern, E-Bikes oder Scootern fragen können — ohne App-Installation, ohne Website-Besuch. Das entspricht der Realität in Märkten, in denen WhatsApp der wichtigste Vertriebskanal kleiner Unternehmen ist.
-
-> **Hinweis zum Umfang.** Dies ist ein Praktikums-/Lernprojekt. Der Bot und der Katalog, aus dem er schöpft, verwenden Beispieldaten; es handelt sich nicht um eine produktive kommerzielle Anwendung.
+Ziel ist es, dass Kunden direkt in einem WhatsApp-Chat nach Fahrrädern, E-Bikes oder Rollern fragen können — ohne App-Installation und ohne Website-Besuch. Das entspricht der Art, wie kleine Unternehmen tatsächlich verkaufen, in Märkten, in denen WhatsApp der wichtigste Handelskanal ist.
 
 ---
 
@@ -52,11 +48,10 @@ Ziel ist es, dass Kund:innen direkt in einem WhatsApp-Chat nach Fahrrädern, E-B
 
 - **Webhook-Verifizierung** — verarbeitet den `GET /webhook`-Handshake von Meta (`hub.challenge` / `hub.verify_token`)
 - **Verarbeitung eingehender Nachrichten** — empfängt und parst `POST /webhook`-Payloads der Meta Cloud API
-- **KI-generierte Antworten** — Kundennachrichten werden an die OpenAI API gesendet, die eine natürlichsprachliche, auf dem Produktkatalog basierende Antwort erzeugt
-- **Gemeinsamer Katalog** — Antworten basieren auf denselben Produktdaten wie die Velo.Stor-Website, wodurch beide Frontends konsistent bleiben
-- **Signatur-/Token-Verifizierung** — validiert eingehende Anfragen, bevor sie verarbeitet werden
+- **KI-generierte Antworten** — Kundennachrichten werden an die OpenAI-API gesendet, die eine Antwort in natürlicher Sprache auf Grundlage des Produktkatalogs erzeugt
+- **Gemeinsamer Katalog** — die Antworten basieren auf denselben Produktdaten wie die Velo.Stor-Website, sodass beide Frontends konsistent bleiben
+- **Signatur- / Token-Prüfung** — validiert eingehende Anfragen, bevor sie verarbeitet werden
 - **Strukturiertes Logging** — Anfrage- und Fehlerprotokolle zur Fehlersuche bei der Webhook-Zustellung
-<!-- TODO: Liste mit dem tatsächlichen Funktionsumfang abgleichen (z. B. Mediennachrichten, Quick Replies, Übergabe an einen menschlichen Agenten, Bestellstatus-Abfragen) -->
 
 ---
 
@@ -64,12 +59,12 @@ Ziel ist es, dass Kund:innen direkt in einem WhatsApp-Chat nach Fahrrädern, E-B
 
 ```mermaid
 flowchart LR
-    A[Kund:in] -->|WhatsApp-Nachricht| B[Meta Cloud API]
+    A[Kunde] -->|WhatsApp-Nachricht| B[Meta Cloud API]
     B -->|POST /webhook| C["Flask-Server<br/>Python"]
     C --> D{Anfrage prüfen}
-    D -->|gültig| E[Message Handler]
+    D -->|gültig| E[Nachrichten-Handler]
     D -->|ungültig| Z[Ablehnen]
-    E --> F[OpenAI API]
+    E --> F[OpenAI-API]
     E --> G[(Produktkatalog)]
     F --> E
     G --> E
@@ -77,50 +72,38 @@ flowchart LR
     B -->|WhatsApp-Nachricht| A
 ```
 
-Meta leitet jede eingehende WhatsApp-Nachricht an den Webhook dieses Servers weiter. Der Server verifiziert die Anfrage, baut einen Prompt aus der Kundennachricht und relevanten Katalogdaten, sendet ihn an die OpenAI API und schickt die generierte Antwort über die Meta Cloud API an den Kunden zurück — aus demselben Katalog, den auch die [Velo.Stor](https://github.com/El-Tousy/VELO-STOR-Online-Store)-Website anzeigt.
+Meta leitet jede eingehende WhatsApp-Nachricht an den Webhook dieses Servers weiter. Der Server prüft die Anfrage, erstellt einen Prompt, der die Nachricht des Kunden mit relevanten Katalogdaten kombiniert, sendet ihn an die OpenAI-API und gibt die erzeugte Antwort über die Meta Cloud API an den Kunden zurück — mit demselben Katalog, den auch die Website [Velo.Stor](https://github.com/El-Tousy/velo.Store) anzeigt.
 
 ---
 
 ## Tech-Stack
 
-| Ebene | Technologie | Warum |
+| Schicht | Technologie | Warum |
 |---|---|---|
-| Sprache | Python 3.11+ | — |
-| Web-Framework | Flask | Schlanker Webhook-Server, ohne unnötigen Overhead |
-| Messaging | Meta WhatsApp Cloud API | Offiziell, kein Risiko durch inoffizielle WhatsApp-Automatisierung |
-| KI-Ebene | OpenAI API | Sprachverständnis und Generierung der Antworten |
-| CI/CD | GitHub Actions | Linting, Tests und (optional) Deployment bei jedem Push |
-| Hosting | <!-- TODO: z. B. Render / Railway / Fly.io / ein VPS --> | — |
-| Versionierung | Git & GitHub | — |
+| Sprache | Python 3.11+ | Gut lesbar, starkes Ökosystem für API-Arbeit |
+| Web-Framework | Flask | Leichtgewichtiger Webhook-Server ohne unnötigen Overhead |
+| Messaging | Meta WhatsApp Cloud API | Offiziell, kein Risiko durch WhatsApp-Automatisierung von Drittanbietern |
+| KI-Schicht | OpenAI-API | Verstehen natürlicher Sprache und Erzeugen von Antworten |
+| Tests | pytest | Einfache, gut lesbare Unit-Tests |
+| Versionierung | Git & GitHub | Versionskontrolle und Zusammenarbeit |
 
 ---
 
 ## Projektstruktur
 
 ```
-Meta-API-python-whatsapp-bot/
+whatsapp-bot/
 │
-├── app.py                     # Flask-Einstiegspunkt, Routen-Registrierung
-├── webhook/
-│   ├── verify.py              # GET /webhook Handshake mit Meta
-│   └── handler.py             # POST /webhook Nachrichtenverarbeitung
-├── services/
-│   ├── meta_client.py         # Sendet Antworten über die Meta Cloud API
-│   └── openai_client.py       # Baut Prompts und ruft die OpenAI API auf
-├── catalogue/
-│   └── products.json          # Gemeinsame Produktdaten (spiegelt Velo.Stor)
-├── tests/
-│   └── test_webhook.py        # Unit-Tests für Webhook-Verifizierung und -Verarbeitung
-├── .github/
-│   └── workflows/
-│       └── ci.yml             # Lint- und Test-Pipeline
-├── .env.example                # Vorlage für benötigte Umgebungsvariablen
-├── requirements.txt
+├── webhook.py                 # Flask-Server: Webhook-Verifizierung und Nachrichtenverarbeitung
+├── utils.py                   # Hilfsfunktionen
+├── update_excel_realtime.py   # Skript, das die Produktdaten in Echtzeit aktualisiert
+├── test_utils.py              # Unit-Tests
+├── requirements.txt           # Python-Abhängigkeiten
+├── screenshots/               # Screenshots des Bots im Einsatz
 ├── LICENSE
-└── README.md
+├── README.md
+└── README.de.md
 ```
-
-> Diese Struktur spiegelt die angestrebte Organisation des Projekts wider. <!-- TODO: durch die tatsächliche Dateistruktur ersetzen, falls abweichend -->
 
 ---
 
@@ -129,15 +112,15 @@ Meta-API-python-whatsapp-bot/
 ### Voraussetzungen
 
 - Python 3.11 oder neuer
-- Ein [Meta-Entwickler](https://developers.facebook.com/)-Konto mit konfigurierter WhatsApp-Business-App
-- Ein [OpenAI-API](https://platform.openai.com/)-Schlüssel
+- Ein [Meta-Developer](https://developers.facebook.com/)-Konto mit einer konfigurierten WhatsApp-Business-App
+- Ein Schlüssel für die [OpenAI-API](https://platform.openai.com/)
 - `pip` und optional ein Tool für virtuelle Umgebungen (`venv`, `poetry` usw.)
 
 ### Installation
 
 ```bash
-git clone https://github.com/El-Tousy/Meta-API-python-whatsapp-bot.git
-cd Meta-API-python-whatsapp-bot
+git clone https://github.com/El-Tousy/whatsapp-bot.git
+cd whatsapp-bot
 
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
@@ -147,19 +130,15 @@ pip install -r requirements.txt
 
 ### Konfiguration
 
-```bash
-cp .env.example .env
-# .env anschließend mit eigenen Werten füllen — siehe Umgebungsvariablen unten
-```
+Erstelle im Projektstamm eine `.env`-Datei und trage die Variablen ein, die unter [Umgebungsvariablen](#umgebungsvariablen) beschrieben sind.
 
 ### Lokal ausführen
 
 ```bash
-python app.py
-# oder: flask run
+python webhook.py
 ```
 
-Um während der lokalen Entwicklung echte WhatsApp-Nachrichten zu empfangen, den lokalen Server über einen Tunnel freigeben (z. B. `ngrok http 5000`) und die resultierende HTTPS-URL als Webhook-Callback-URL im Meta-Entwickler-Dashboard registrieren.
+Um während der lokalen Entwicklung echte WhatsApp-Nachrichten zu empfangen, mache deinen lokalen Server über einen Tunnel erreichbar (z. B. `ngrok http 5000`) und trage die resultierende HTTPS-URL im Meta-Developer-Dashboard als Callback-URL des Webhooks ein.
 
 ---
 
@@ -168,13 +147,13 @@ Um während der lokalen Entwicklung echte WhatsApp-Nachrichten zu empfangen, den
 | Variable | Beschreibung |
 |---|---|
 | `WHATSAPP_TOKEN` | Zugriffstoken für die Meta Cloud API (System-User-Token) |
-| `PHONE_NUMBER_ID` | ID der WhatsApp-Business-Telefonnummer, die Nachrichten sendet/empfängt |
-| `VERIFY_TOKEN` | Selbst gewählte Zeichenfolge; muss mit dem Wert in der Meta-Webhook-Konfiguration übereinstimmen |
-| `APP_SECRET` | App-Secret zur Verifizierung der Meta-Anfragesignatur |
-| `OPENAI_API_KEY` | API-Schlüssel für die OpenAI API |
+| `PHONE_NUMBER_ID` | ID der WhatsApp-Business-Telefonnummer, die Nachrichten sendet und empfängt |
+| `VERIFY_TOKEN` | Frei gewählte Zeichenfolge; muss mit dem in der Meta-Webhook-Konfiguration eingetragenen Wert übereinstimmen |
+| `APP_SECRET` | App-Secret zur Überprüfung der Signatur von Metas Anfragen |
+| `OPENAI_API_KEY` | API-Schlüssel für die OpenAI-API |
 | `PORT` | Port, auf dem der Flask-Server lauscht (Standard `5000`) |
 
-<!-- TODO: genaue Variablennamen mit der echten .env.example abgleichen -->
+Die `.env`-Datei enthält Geheimnisse und darf niemals in das Repository committet werden.
 
 ---
 
@@ -182,11 +161,8 @@ Um während der lokalen Entwicklung echte WhatsApp-Nachrichten zu empfangen, den
 
 | Methode | Pfad | Beschreibung |
 |---|---|---|
-| `GET` | `/webhook` | Einmaliger Verifizierungs-Handshake, den Meta bei der Webhook-Registrierung nutzt |
-| `POST` | `/webhook` | Empfängt eingehende WhatsApp-Nachrichten und löst den Antwort-Flow aus |
-| `GET` | `/health` | Einfacher Health-Check, liefert `{ "status": "ok" }` |
-
-<!-- TODO: Zeilen ergänzen/anpassen, falls der Bot weitere Routen bereitstellt (z. B. einen Admin-Endpunkt, einen Endpunkt zum Neuladen des Katalogs) -->
+| `GET` | `/webhook` | Einmaliger Verifizierungs-Handshake, den Meta bei der Registrierung des Webhooks verwendet |
+| `POST` | `/webhook` | Empfängt eingehende WhatsApp-Nachrichten und löst den Antwortablauf aus |
 
 ---
 
@@ -196,75 +172,28 @@ Um während der lokalen Entwicklung echte WhatsApp-Nachrichten zu empfangen, den
 pytest
 ```
 
-Die Tests decken die Verifizierung der Webhook-Signatur und die Nachrichtenverarbeitungslogik isoliert ab, mit gemockten Meta- und OpenAI-Antworten, damit die Testsuite nicht von echten Zugangsdaten abhängt.
-<!-- TODO: anpassen, sobald die echte Testsuite existiert -->
+Die Unit-Tests in `test_utils.py` prüfen die Hilfsfunktionen isoliert und sind daher nicht auf echte Meta- oder OpenAI-Zugangsdaten angewiesen.
 
 ---
 
-## CI/CD
+## Bereitstellung
 
-Die Continuous Integration läuft bei jedem Push und Pull Request über **GitHub Actions** (`.github/workflows/ci.yml`):
+Der Bot benötigt eine öffentlich erreichbare HTTPS-URL, damit Meta Webhook-Ereignisse an ihn zustellen kann. Jeder Hosting-Anbieter, der eine Python-/Flask-Anwendung ausführen kann, ist geeignet.
 
-```yaml
-name: CI
+1. Stelle die Anwendung bereit und installiere die Abhängigkeiten aus `requirements.txt`.
+2. Setze die oben aufgeführten Umgebungsvariablen im Dashboard des Hosting-Anbieters.
+3. Trage die öffentliche URL (mit Endung `/webhook`) im Meta-Developer-Dashboard unter **WhatsApp → Configuration** ein, mit demselben `VERIFY_TOKEN`.
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  lint-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Python einrichten
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Abhängigkeiten installieren
-        run: |
-          pip install -r requirements.txt
-          pip install flake8 pytest
-
-      - name: Linting
-        run: flake8 .
-
-      - name: Tests ausführen
-        run: pytest
-```
-
-Die Pipeline:
-1. **Prüft** den Code mit `flake8` auf Stil- und offensichtliche Korrektheitsprobleme vor dem Merge
-2. **Führt die Testsuite** mit `pytest` bei jedem Push und Pull Request auf `main` aus
-3. <!-- TODO: einen Deploy-Job ergänzen (z. B. Auslösen eines Render-/Railway-Deploy-Hooks oder Push auf einen VPS via SSH), sobald ein Hosting-Anbieter feststeht -->
-
-Eine Branch-Protection-Regel auf `main`, die diesen Workflow als Voraussetzung für Merges verlangt, wird empfohlen.
-
----
-
-## Deployment
-
-<!-- TODO: ausfüllen, sobald ein Hosting-Anbieter feststeht. Beispielstruktur unten. -->
-
-| Einstellung | Wert |
-|---|---|
-| Hosting | TODO |
-| Trigger | Push auf `main` |
-| Umgebungsvariablen | Im Dashboard des Hosting-Anbieters konfiguriert, analog zu `.env.example` |
-| Webhook-URL | Registriert im Meta-Entwickler-Dashboard → WhatsApp → Konfiguration |
+Für die lokale Entwicklung ersetzt ein Tunnel wie `ngrok` die Schritte 1 und 2.
 
 ---
 
 ## Technische Herausforderungen und Erkenntnisse
 
-- **Der Webhook-Verifizierungs-Handshake von Meta.** Der `GET /webhook`-Challenge/Response-Ablauf sowie die Signaturverifizierung (`X-Hub-Signature-256`) bei jedem `POST` müssen korrekt implementiert sein — sonst stellt Meta die Nachrichtenzustellung stillschweigend ein, ohne aussagekräftige Fehlermeldung an die Entwicklerin.
-- **Prompting für fundierte Antworten.** Die OpenAI API dazu zu bringen, tatsächlich aus dem Produktkatalog zu antworten, statt plausibel klingende, aber falsche Details zu erfinden, hat mehr Prompt-Iterationen gebraucht als der Integrationscode selbst.
-- **Eine gemeinsame Quelle der Wahrheit mit der Website teilen.** Den Katalog des Bots und den der Velo.Stor-Website synchron zu halten, ist die zentrale Design-Einschränkung des gesamten Zwei-Repository-Systems.
-- <!-- TODO: weitere reale Herausforderungen ergänzen — z. B. Freigabe von WhatsApp-Nachrichtenvorlagen, Rate Limits, Latenz des OpenAI-Aufrufs innerhalb des Webhook-Antwortfensters -->
+- **Metas Webhook-Verifizierungs-Handshake.** Der Challenge-/Response-Ablauf von `GET /webhook` sowie die Signaturprüfung (`X-Hub-Signature-256`) bei jedem `POST` müssen korrekt implementiert sein, sonst stellt Meta Nachrichten stillschweigend nicht mehr zu — es wird dem Entwickler keine ausführliche Fehlermeldung zurückgegeben.
+- **Prompting für fundierte Antworten.** Die OpenAI-API dazu zu bringen, aus dem tatsächlichen Produktkatalog zu antworten, statt plausibel klingende, aber falsche Details zu erfinden, erforderte mehr Prompt-Iterationen als der Integrationscode selbst.
+- **Eine gemeinsame Wahrheitsquelle mit der Website.** Den Katalog des Bots und den der Velo.Stor-Website synchron zu halten, ist die wichtigste Entwurfsbeschränkung des gesamten Systems aus zwei Repositories.
+- **Latenz innerhalb des Webhook-Zeitfensters.** Der Aufruf der OpenAI-API, während Meta auf eine Antwort wartet, bedeutet, dass der Handler schnell bleiben und Fehler sauber abfangen muss — andernfalls wiederholt Meta die Zustellung, und der Kunde erhält möglicherweise doppelte Antworten.
 
 ---
 
@@ -273,37 +202,37 @@ Eine Branch-Protection-Regel auf `main`, die diesen Workflow als Voraussetzung f
 - [x] Webhook-Verifizierung und Nachrichtenverarbeitung
 - [x] Von OpenAI generierte Antworten
 - [x] Gemeinsamer Katalog mit dem Velo.Stor-Shop
-- [ ] Automatisierter Deploy-Job in der CI/CD-Pipeline
-- [ ] Gesprächsverlauf / Kontext pro Kund:in
-- [ ] Übergabe an einen menschlichen Agenten bei Fragen, die der Bot nicht beantworten kann
-- [ ] Strukturierte Bestell-/Statusabfragen
+- [ ] CI-Pipeline mit Lint und Tests bei jedem Push
+- [ ] Gesprächsverlauf / Kontext pro Kunde
+- [ ] Übergabe an einen Menschen bei Anfragen, die der Bot nicht beantworten kann
+- [ ] Strukturierte Abfragen zu Bestellungen und Status
 - [ ] Testabdeckung erweitern
 
 ---
 
 ## Verwandtes Projekt
 
-**[Velo.Stor](https://github.com/El-Tousy/VELO-STOR-Online-Store)** — die arabischsprachige RTL-E-Commerce-Website, mit der dieser Bot seinen Katalog teilt.
+**[Velo.Stor](https://github.com/El-Tousy/velo.Store)** — die arabische E-Commerce-Website mit RTL-Layout, mit der dieser Bot seinen Katalog teilt.
 
 ---
 
-## Autorin
+## Autor
 
 **El-Tousy** — Informatikstudentin, Marokko
 
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/El-Tousy)
-[![E-Mail](https://img.shields.io/badge/Email-D14836?style=flat&logo=gmail&logoColor=white)](mailto:leilaeltousy@gmail.com)
+[![Email](https://img.shields.io/badge/Email-D14836?style=flat&logo=gmail&logoColor=white)](mailto:leilaeltousy@gmail.com)
 
 ---
 
 ## Lizenz
 
-Veröffentlicht unter der MIT-Lizenz. Details siehe [LICENSE](LICENSE).
+Veröffentlicht unter der MIT-Lizenz. Siehe [LICENSE](LICENSE) für Details.
 
 ---
 
 <div align="center">
 
-⭐ Wenn dir dieses Projekt hilft, freue ich mich über einen Stern.
+⭐ Wenn dir dieses Projekt nützlich erscheint, hinterlasse gerne einen Stern.
 
 </div>
